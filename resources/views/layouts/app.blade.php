@@ -13,6 +13,7 @@
       <a href="{{ url('/') }}">Главная</a>
       <a href="{{ route('tasks.index') }}">Задачи</a>
       <a href="{{ route('fridge.index') }}">Холодильник</a>
+      <span class="right"></span>
     </div>
   </nav>
 
