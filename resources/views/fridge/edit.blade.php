@@ -3,8 +3,9 @@
 @section('title', 'Редактировать продукт')
 
 @push('styles')
-  @vite('resources/css/fridge.css')
+  <link rel="stylesheet" href="{{ asset('css/fridge.css') }}">
 @endpush
+
 
 @section('content')
   <h1 class="mb-3">Редактировать продукт</h1>

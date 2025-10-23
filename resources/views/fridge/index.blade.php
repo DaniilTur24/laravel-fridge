@@ -1,10 +1,9 @@
 @extends('layouts.app')
-
 @section('title', 'Мой холодильник')
-
 @push('styles')
-  @vite('resources/css/fridge.css')
+  <link rel="stylesheet" href="{{ asset('css/fridge.css') }}">
 @endpush
+
 
 @section('content')
   @if (session('status'))

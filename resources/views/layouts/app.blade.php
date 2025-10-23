@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>@yield('title', 'Моё приложение')</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  @vite(['resources/css/app.css', 'resources/js/app.js'])
+  <link rel="stylesheet" href="{{ asset('css/app.css') }}">
   @stack('styles')
 </head>
 <body>
