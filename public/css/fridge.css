@@ -1,109 +1,116 @@
 /* Страница "Холодильник": небольшие донастройки поверх глобального UI */
 
 .fridge-head {
-  display: flex;
-  align-items: center;
-  gap: 12px
+    display: flex;
+    align-items: center;
+    gap: 12px
 }
 
 .fridge-note {
-  color: var(--muted);
-  font-size: .95rem
+    color: var(--muted);
+    font-size: .95rem
 }
 
 /* Поля формы на одной линии, на мобиле складываются */
 .fridge-form .input {
-  min-width: 220px
+    min-width: 220px
 }
 
 @media (max-width:700px) {
-  .fridge-form .input {
-    min-width: unset;
-    flex: 1
-  }
+    .fridge-form .input {
+        min-width: unset;
+        flex: 1
+    }
 }
 
 /* Список */
 .fridge-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 10px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
 }
 
 .fridge-item {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 12px;
-  align-items: center;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px 14px;
-  box-shadow: var(--shadow-sm);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    box-shadow: var(--shadow-sm);
+    flex-direction: column;
 }
 
 .fridge-item__content {
-  min-width: 0
+    min-width: 0;
+    width: 100%;
 }
 
 .fridge-item__title {
-  font-weight: 700;
-  letter-spacing: .2px
+    font-weight: 700;
+    letter-spacing: .2px
 }
 
 .fridge-item__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 6px;
-  color: #374151
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+    color: #374151;
+    justify-content: space-around;
 }
 
 .fridge-actions {
-  display: flex;
-  gap: 8px
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
 }
 
 .comment {
-  color: #374151;
-  background: #f8fafc;
-  border: 1px dashed #e5e7eb;
-  padding: 6px 10px;
-  border-radius: 10px
+    display: flex;
+    color: #374151;
+    background: #f8fafc;
+    align-items: center;
+    border: 1px dashed #e5e7eb;
+    padding: 0 10px;
+    border-radius: 10px;
 }
 
 /* Небольшие отступы между секциями */
 .mt-2 {
-  margin-top: 12px
+    margin-top: 12px
 }
 
 /* Стековая форма: всё строго в столбик */
-.form--stacked{
-  display: flex;
-  flex-direction: column;
-  gap: 14px;              /* расстояние между полями */
+.form--stacked {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    /* расстояние между полями */
 }
 
 /* Поле = label сверху, input снизу, с отступом */
-.form--stacked .field{
-  display: flex;
-  flex-direction: column;
-  gap: 8px;               /* расстояние между label и input */
-  width: 100%;
+.form--stacked .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    /* расстояние между label и input */
+    width: 100%;
 }
 
 /* Инпуты на всю ширину, без минимальной ширины из прежних правил */
-.form--stacked .input{
-  width: 100%;
-  min-width: 0;
+.form--stacked .input {
+    width: 100%;
+    min-width: 0;
 }
-.form--stacked input[type="number"].input{
-  width: 100%;
+
+.form--stacked input[type="number"].input {
+    width: 100%;
 }
 
 /* Если есть actions под формой */
-.form--stacked .form-actions{
-  margin-top: 6px;
+.form--stacked .form-actions {
+    margin-top: 6px;
 }
