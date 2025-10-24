@@ -62,6 +62,29 @@
       </form>
     </div>
 
+    <button type="button" class="btn btn-secondary mt-2" onclick="openScannerZX()">📷 Сканировать штрих-код</button>
+
+    <div id="scanModal" class="card" style="display:none; position:fixed; inset:0; margin:auto; max-width:640px; height:80vh; z-index:1000; overflow:hidden;">
+      <div class="card-header" style="display:flex; justify-content:space-between; align-items:center">
+        <h3 class="card-title">Сканируем…</h3>
+        <button class="btn btn-ghost" type="button" onclick="closeScannerZX()">✖</button>
+      </div>
+
+      <div style="position:relative; width:100%; height:100%; background:#000; display:flex; align-items:center; justify-content:center;">
+        <video id="video-previewer" style="width:100%; height:100%; object-fit:cover;" autoplay muted playsinline webkit-playsinline></video>
+        <!-- направляющая рамка -->
+        <div style="position:absolute; inset:20% 10%; border:3px solid rgba(255,255,255,.6); border-radius:12px;"></div>
+      </div>
+
+      <form id="scanSubmit" action="{{ route('fridge.scan') }}" method="post" style="display:none;">
+        @csrf
+        <input type="hidden" name="barcode" id="barcodeField">
+      </form>
+
+      <div id="scanInfo" class="card-sub" style="padding:10px 14px">Наведи камеру на штрих-код…</div>
+    </div>
+
+
   </form>
 </section>
 
@@ -118,75 +141,71 @@
     <li class="muted">Пока пусто. Добавь первый продукт ↑</li>
     @endforelse
   </ul>
-  <script src="https://unpkg.com/quagga@0.12.1/dist/quagga.min.js"></script>
+  <script src="https://unpkg.com/@zxing/library@0.20.0"></script>
   <script>
-    let scanning = false;
+    let zxingReader = null;
+    let activeDeviceId = null;
 
-    function openScanner() {
+    function openScannerZX() {
       document.getElementById('scanModal').style.display = 'block';
-      startQuagga();
+      startZXing();
     }
 
-    function closeScanner() {
-      stopQuagga();
+    function closeScannerZX() {
+      stopZXing();
       document.getElementById('scanModal').style.display = 'none';
     }
 
-    function startQuagga() {
-      if (scanning) return;
-      scanning = true;
+    async function startZXing() {
+      try {
+        const codeReader = new ZXing.BrowserMultiFormatReader();
+        zxingReader = codeReader;
 
-      Quagga.init({
-        inputStream: {
-          type: "LiveStream",
-          target: document.querySelector('#scanner'),
-          constraints: {
-            facingMode: "environment"
+        // выберем тыловую камеру, если есть
+        const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
+        const back = devices.find(d => /back|rear|environment/i.test(d.label)) || devices[0];
+        activeDeviceId = back?.deviceId;
+
+        const video = document.getElementById('video-previewer');
+        // запускаем декодинг из видеоустройства
+        await codeReader.decodeFromVideoDevice(activeDeviceId, video, (result, err) => {
+          if (result) {
+            onDetectedZX(result.getText());
+          } else if (err && !(err instanceof ZXing.NotFoundException)) {
+            // это не «ничего не нашли», а реальная ошибка
+            console.warn(err);
           }
-        },
-        decoder: {
-          readers: [
-            "ean_reader", // EAN-13 (Европа)
-            "ean_8_reader",
-            "upc_reader",
-            "upc_e_reader",
-            "code_128_reader"
-          ]
-        },
-        locate: true
-      }, function(err) {
-        if (err) {
-          console.error(err);
-          scanning = false;
-          return;
-        }
-        Quagga.start();
-      });
+        });
 
-      Quagga.onDetected(onDetectedOnce);
+        document.getElementById('scanInfo').textContent = back ? 'Камера запущена' : 'Камера не найдена';
+      } catch (e) {
+        console.error('ZXing init error', e);
+        document.getElementById('scanInfo').textContent = 'Ошибка доступа к камере. Проверь HTTPS/разрешения.';
+      }
     }
 
-    function stopQuagga() {
-      if (!scanning) return;
-      Quagga.offDetected(onDetectedOnce);
-      Quagga.stop();
-      scanning = false;
+    function stopZXing() {
+      try {
+        zxingReader && zxingReader.reset(); // останавливает стрим и декодер
+      } catch (e) {}
+      const video = document.getElementById('video-previewer');
+      if (video && video.srcObject) {
+        video.srcObject.getTracks().forEach(t => t.stop());
+        video.srcObject = null;
+      }
     }
 
-    let detectedLock = false;
-
-    function onDetectedOnce(result) {
-      if (detectedLock) return;
-      const code = result?.codeResult?.code;
-      if (!code) return;
-
-      detectedLock = true;
-      stopQuagga();
-
-      // Заполняем форму и шлём на бэкенд
-      document.getElementById('barcodeField').value = code;
-      document.getElementById('scanSubmit').submit();
+    function onDetectedZX(text) {
+      // Закрываем сканер и шлём форму
+      document.getElementById('scanInfo').textContent = 'Найдено: ' + text;
+      closeScannerZX();
+      setTimeout(() => {
+        document.getElementById('barcodeField').value = text;
+        document.getElementById('scanSubmit').submit();
+      }, 50);
     }
   </script>
+
+
 </section>
 @endsection
