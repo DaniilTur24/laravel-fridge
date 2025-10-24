@@ -31,33 +31,44 @@
     @enderror
 
     {{-- список задач --}}
-    <div class="task-list mt-2">
-      @forelse ($tasks as $task)
-        <div class="fridge-item"> {{-- используем те же карточки, что и во fridge --}}
-          <div class="fridge-item__content">
-            <form action="{{ route('tasks.toggle', $task) }}" method="post" style="display:inline">
-              @csrf
-              @method('PATCH')
-              <button class="btn btn-ghost" type="submit" title="Переключить статус">
-                {{ $task->is_done ? '☑︎' : '☐' }}
-              </button>
-            </form>
+<div class="task-list mt-2">
+  @forelse ($tasks as $task)
+    <div class="fridge-item">
+      {{-- ТОГГЛ СТАТУСА через кастомный чекбокс --}}
+      <form action="{{ route('tasks.toggle', $task) }}" method="post" class="task-toggle-form" style="display:flex; align-items:center; gap:10px">
+        @csrf
+        @method('PATCH')
 
-            <span class="{{ $task->is_done ? 'done' : '' }}">
-              {{ $task->title }}
-            </span>
-          </div>
-
-          <form action="{{ route('tasks.destroy', $task) }}" method="post"
-                onsubmit="return confirm('Удалить задачу?')">
-            @csrf
-            @method('DELETE')
-            <button class="btn btn-danger" type="submit">Удалить</button>
-          </form>
+        @php($cid = 'cb26-'.$task->id)
+        <div class="checkbox-wrapper-26">
+          <input
+            type="checkbox"
+            id="{{ $cid }}"
+            name="is_done"
+            {{ $task->is_done ? 'checked' : '' }}
+            onchange="this.form.submit()"
+          >
+          <label for="{{ $cid }}">
+            <div class="tick_mark"></div>
+          </label>
         </div>
-      @empty
-        <p class="muted mt-2">Задач пока нет. Добавь первую выше ↑</p>
-      @endforelse
+
+        <label for="{{ $cid }}" class="task-title {{ $task->is_done ? 'done' : '' }}" style="cursor:pointer;">
+          {{ $task->title }}
+        </label>
+      </form>
+
+      {{-- УДАЛЕНИЕ --}}
+      <form action="{{ route('tasks.destroy', $task) }}" method="post" onsubmit="return confirm('Удалить задачу?')">
+        @csrf
+        @method('DELETE')
+        <button class="btn btn-danger" type="submit">Удалить</button>
+      </form>
     </div>
+  @empty
+    <p class="muted mt-2">Задач пока нет. Добавь первую выше ↑</p>
+  @endforelse
+</div>
+
   </section>
 @endsection

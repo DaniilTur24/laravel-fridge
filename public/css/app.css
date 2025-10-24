@@ -170,6 +170,8 @@ img {
 
 /* Cards */
 .card {
+    display: flex;
+    flex-direction: column;
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius);
@@ -198,10 +200,12 @@ img {
 
 /* Forms */
 .form-row {
-    display: flex;
+        display: flex
+;
     flex-wrap: wrap;
     gap: 10px;
     align-items: flex-start;
+    justify-content: space-between;
 }
 
 .field {
