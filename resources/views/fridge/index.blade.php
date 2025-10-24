@@ -62,7 +62,7 @@
     <button class="btn btn-secondary" id="scan-close" type="button" aria-label="Закрыть">✕</button>
   </div>
   <div class="scan-body">
-    <video id="scan-preview" playsinline muted autoplay></video>
+    <div id="scan-container" class="scan-container" aria-label="Просмотр камеры"></div>
     <p class="muted" id="scan-hint">Наведите камеру на EAN-13/EAN-8</p>
     <p class="scan-status" id="scan-status" aria-live="polite"></p>
   </div>
@@ -134,50 +134,51 @@
   const openBtn = document.getElementById('scan-open');
   const closeBtn = document.getElementById('scan-close');
   const stopBtn = document.getElementById('scan-stop');
-  const video = document.getElementById('scan-preview');
+  const container = document.getElementById('scan-container'); // <-- новый контейнер
   const statusEl = document.getElementById('scan-status');
   const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
 
   let running = false, lastCode = null, sameReads = 0;
-  let mediaStream = null;
-
-  async function getRearStream() {
-    try {
-      return await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false
-      });
-    } catch {
-      return await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-    }
-  }
 
   async function startScanner() {
     statusEl.textContent = 'Инициализация камеры…';
 
-    // 1) Показываем превью в <video>
-    mediaStream = await getRearStream();
-    video.srcObject = mediaStream;
-    try { await video.play(); } catch {}
-
-    const track = mediaStream.getVideoTracks()[0];
-    const deviceId = track?.getSettings?.().deviceId;
-
-    // 2) Стартуем Quagga на той же камере
     await Quagga.init({
       inputStream: {
+        name: "Live",
         type: "LiveStream",
-        constraints: deviceId
-          ? { deviceId: { exact: deviceId }, width:{ideal:1280}, height:{ideal:720} }
-          : { facingMode: "environment", width:{ideal:1280}, height:{ideal:720} }
+        target: container,                 // <-- ВАЖНО: не video, а контейнер
+        constraints: {
+          facingMode: "environment",
+          width:  { min: 640, ideal: 1280 },
+          height: { min: 480, ideal: 720 }
+        }
       },
       decoder: { readers: ["ean_reader","ean_8_reader","upc_reader"] },
       locate: true,
-      numOfWorkers: 0, // стабильнее на iOS
+      numOfWorkers: 0, // iOS/Safari стабильнее
+      frequency: 5
     });
 
     Quagga.offDetected(onDetected);
     Quagga.onDetected(onDetected);
+
+    // (необязательно) рамки для дебага
+    Quagga.onProcessed(function(result){
+      const ctx = Quagga.canvas?.ctx?.overlay;
+      const canvas = Quagga.canvas?.dom?.overlay;
+      if (!ctx || !canvas) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (result?.boxes) {
+        result.boxes.filter(b => b !== result.box).forEach(b => {
+          Quagga.ImageDebug.drawPath(b, {x:0,y:1}, ctx, {color:"green", lineWidth:2});
+        });
+      }
+      if (result?.box) {
+        Quagga.ImageDebug.drawPath(result.box, {x:0,y:1}, ctx, {color:"blue", lineWidth:2});
+      }
+    });
+
     await Quagga.start();
     running = true;
     statusEl.textContent = 'Сканируйте штрих-код…';
@@ -189,15 +190,6 @@
       Quagga.offDetected(onDetected);
       running = false;
     }
-    if (mediaStream) {
-      mediaStream.getTracks().forEach(t => t.stop());
-      mediaStream = null;
-    }
-    if (video) {
-      video.srcObject = null;
-      video.removeAttribute('src');
-      try { video.load?.(); } catch {}
-    }
   }
 
   async function onDetected(res) {
@@ -205,7 +197,7 @@
     if (!code) return;
 
     if (code === lastCode) sameReads++; else { lastCode = code; sameReads = 1; }
-    if (sameReads < 2) return;
+    if (sameReads < 2) return; // двойное подтверждение
 
     statusEl.textContent = `Найден код: ${code}`;
     stopScanner();
@@ -233,6 +225,7 @@
     }
   }
 
+  // UI
   openBtn?.addEventListener('click', async () => {
     dlg.showModal();
     lastCode = null; sameReads = 0;
@@ -240,7 +233,6 @@
   });
   closeBtn?.addEventListener('click', () => { stopScanner(); dlg.close(); });
   stopBtn?.addEventListener('click', () => { stopScanner(); statusEl.textContent='Остановлено.'; });
-
   dlg?.addEventListener('click', (e) => {
     const rect = dlg.getBoundingClientRect();
     const inside = e.clientX>=rect.left && e.clientX<=rect.right && e.clientY>=rect.top && e.clientY<=rect.bottom;
@@ -248,6 +240,8 @@
   });
 </script>
 @endpush
+
+
 
 
 @endsection
