@@ -46,6 +46,28 @@
 
     <button class="btn btn-primary" type="submit">Добавить</button>
 
+    <div class="fridge-tools">
+  <button class="btn btn-secondary" type="button" id="scan-open">
+    Сканировать штрих-код
+  </button>
+</div>
+
+<dialog id="scan-dialog">
+  <div class="scan-head">
+    <h3>Сканирование</h3>
+    <button class="btn btn-secondary" id="scan-close" type="button" aria-label="Закрыть">✕</button>
+  </div>
+  <div class="scan-body">
+    <video id="scan-preview" playsinline muted></video>
+    <p class="muted" id="scan-hint">Наведите камеру на EAN-13/EAN-8</p>
+    <p class="scan-status" id="scan-status" aria-live="polite"></p>
+  </div>
+  <div class="scan-actions">
+    <button class="btn" id="scan-stop" type="button">Стоп</button>
+  </div>
+</dialog>
+
+
   </form>
 </section>
 
@@ -103,4 +125,89 @@
     @endforelse
   </ul>
 </section>
+@push('scripts')
+<script type="module">
+  import Quagga from "https://cdn.jsdelivr.net/npm/@ericblade/quagga2/+esm";
+
+  const dlg = document.getElementById('scan-dialog');
+  const openBtn = document.getElementById('scan-open');
+  const closeBtn = document.getElementById('scan-close');
+  const stopBtn = document.getElementById('scan-stop');
+  const video = document.getElementById('scan-preview');
+  const statusEl = document.getElementById('scan-status');
+  const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+
+  let running = false, lastCode = null, sameReads = 0;
+
+  async function startScanner() {
+    statusEl.textContent = 'Инициализация камеры…';
+    await Quagga.init({
+      inputStream: {
+        type: "LiveStream",
+        target: video,
+        constraints: { facingMode: "environment", width:{ideal:1280}, height:{ideal:720} }
+      },
+      decoder: { readers: ["ean_reader","ean_8_reader","upc_reader"] },
+      locate: true,
+    });
+    Quagga.onDetected(onDetected);
+    await Quagga.start();
+    running = true;
+    statusEl.textContent = 'Сканируйте штрих-код…';
+  }
+
+  function stopScanner() {
+    if (running) {
+      Quagga.stop();
+      Quagga.offDetected(onDetected);
+      running = false;
+    }
+  }
+
+  async function onDetected(res) {
+    const code = res?.codeResult?.code;
+    if (!code) return;
+
+    if (code === lastCode) sameReads++; else { lastCode = code; sameReads = 1; }
+    if (sameReads < 2) return; // двойное подтверждение
+
+    statusEl.textContent = `Найден код: ${code}`;
+    stopScanner();
+
+    if (!/^\d{8,14}$/.test(code)) {
+      statusEl.textContent = 'Похоже, это не EAN-код.';
+      return;
+    }
+
+    try {
+      const r = await fetch("{{ route('fridge.scan') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf },
+        body: JSON.stringify({ ean: code })
+      });
+      const json = await r.json();
+      if (!json.ok) throw new Error(json.error || 'scan_failed');
+
+      statusEl.textContent = 'Добавлено! Обновляю список…';
+      window.location.reload();
+    } catch(e) {
+      console.error(e);
+      statusEl.textContent = 'Ошибка при добавлении. Попробуйте ещё раз.';
+      setTimeout(() => { lastCode=null; sameReads=0; startScanner(); }, 1200);
+    }
+  }
+
+  openBtn?.addEventListener('click', () => { dlg.showModal(); lastCode=null; sameReads=0; startScanner(); });
+  closeBtn?.addEventListener('click', () => { stopScanner(); dlg.close(); });
+  stopBtn?.addEventListener('click', () => { stopScanner(); statusEl.textContent='Остановлено.'; });
+
+  // Закрытие по клику вне модала
+  dlg?.addEventListener('click', (e) => {
+    const rect = dlg.getBoundingClientRect();
+    const inside = e.clientX>=rect.left && e.clientX<=rect.right && e.clientY>=rect.top && e.clientY<=rect.bottom;
+    if (!inside) { stopScanner(); dlg.close(); }
+  });
+</script>
+@endpush
+
 @endsection

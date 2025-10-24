@@ -7,6 +7,12 @@ use App\Http\Controllers\FridgeController;
 
 
 
+Route::post('/fridge/scan', [FridgeController::class, 'scan'])->name('fridge.scan');
+
+
+
+
+
 Route::get('/', function () {
     return view('welcome');
 });
