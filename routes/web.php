@@ -4,10 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HelloController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\FridgeController;
-use App\Http\Controllers\FridgeScanController;
 
-Route::post('/fridge/scan', [FridgeScanController::class, 'store'])
-    ->name('fridge.scan');
+
 
 Route::get('/', function () {
     return view('welcome');
