@@ -46,6 +46,22 @@
 
     <button class="btn btn-primary" type="submit">Добавить</button>
 
+    <button class="btn btn-secondary" type="button" onclick="openScanner()">Сканировать штрих-код</button>
+
+    <!-- Modal -->
+    <div id="scanModal" class="card" style="display:none; position:fixed; inset:0; margin:auto; max-width:640px; height:80vh; z-index:1000; overflow:hidden;">
+      <div class="card-header" style="display:flex; justify-content:space-between; align-items:center">
+        <h3 class="card-title">Сканируем…</h3>
+        <button class="btn btn-ghost" type="button" onclick="closeScanner()">Закрыть</button>
+      </div>
+      <div id="scanner" style="position:relative; width:100%; height:100%; background:#000;"></div>
+
+      <form id="scanSubmit" action="{{ route('fridge.scan') }}" method="post" style="display:none;">
+        @csrf
+        <input type="hidden" name="barcode" id="barcodeField">
+      </form>
+    </div>
+
   </form>
 </section>
 
@@ -102,5 +118,75 @@
     <li class="muted">Пока пусто. Добавь первый продукт ↑</li>
     @endforelse
   </ul>
+  <script src="https://unpkg.com/quagga@0.12.1/dist/quagga.min.js"></script>
+  <script>
+    let scanning = false;
+
+    function openScanner() {
+      document.getElementById('scanModal').style.display = 'block';
+      startQuagga();
+    }
+
+    function closeScanner() {
+      stopQuagga();
+      document.getElementById('scanModal').style.display = 'none';
+    }
+
+    function startQuagga() {
+      if (scanning) return;
+      scanning = true;
+
+      Quagga.init({
+        inputStream: {
+          type: "LiveStream",
+          target: document.querySelector('#scanner'),
+          constraints: {
+            facingMode: "environment"
+          }
+        },
+        decoder: {
+          readers: [
+            "ean_reader", // EAN-13 (Европа)
+            "ean_8_reader",
+            "upc_reader",
+            "upc_e_reader",
+            "code_128_reader"
+          ]
+        },
+        locate: true
+      }, function(err) {
+        if (err) {
+          console.error(err);
+          scanning = false;
+          return;
+        }
+        Quagga.start();
+      });
+
+      Quagga.onDetected(onDetectedOnce);
+    }
+
+    function stopQuagga() {
+      if (!scanning) return;
+      Quagga.offDetected(onDetectedOnce);
+      Quagga.stop();
+      scanning = false;
+    }
+
+    let detectedLock = false;
+
+    function onDetectedOnce(result) {
+      if (detectedLock) return;
+      const code = result?.codeResult?.code;
+      if (!code) return;
+
+      detectedLock = true;
+      stopQuagga();
+
+      // Заполняем форму и шлём на бэкенд
+      document.getElementById('barcodeField').value = code;
+      document.getElementById('scanSubmit').submit();
+    }
+  </script>
 </section>
 @endsection
