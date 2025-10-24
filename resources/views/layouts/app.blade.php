@@ -28,11 +28,5 @@
 
     @yield('content')
   </main>
-
-  <footer class="site-footer">
-    <div class="container">
-      <p class="muted text-sm">© {{ date('Y') }} {{ config('app.name', 'App') }}</p>
-    </div>
-  </footer>
 </body>
 </html>

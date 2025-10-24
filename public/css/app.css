@@ -29,7 +29,7 @@ html {
 
 body {
     margin: 0;
-    background: var(--bg);
+    background: #ffb2ae;
     color: var(--text);
     font: 400 16px/1.55 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans";
 }
@@ -134,8 +134,7 @@ img {
 
 .nav {
     backdrop-filter: blur(8px);
-    background: rgba(255, 255, 255, .8);
-    border-bottom: 1px solid var(--line);
+    background: rgba(255, 255, 255, .6);
 }
 
 .nav-inner {
@@ -175,7 +174,7 @@ img {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .9);
     padding: 18px;
 }
 
