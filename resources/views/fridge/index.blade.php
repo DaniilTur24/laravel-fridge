@@ -1,58 +1,89 @@
 @extends('layouts.app')
 @section('title', 'Мой холодильник')
+
 @push('styles')
-  <link rel="stylesheet" href="{{ asset('css/fridge.css') }}">
+<link rel="stylesheet" href="{{ asset('css/fridge.css') }}">
 @endpush
 
-
 @section('content')
-  @if (session('status'))
-    <div class="flash mb-3">{{ session('status') }}</div>
-  @endif
-
-  <div class="fridge-title">
-    <h1>Мой холодильник 🧊</h1>
+<section class="card">
+  <div class="card-header">
+    <div class="fridge-head">
+      <h1 class="card-title">Мой холодильник</h1>
+      <span class="badge" aria-label="Количество позиций">
+        {{ $items->count() }} шт.
+      </span>
+    </div>
+    <p class="card-sub fridge-note">Добавляй продукты, количество и (опционально) граммы и комментарий.</p>
   </div>
 
   {{-- Форма добавления --}}
-  <form action="{{ route('fridge.store') }}" method="post" class="row mb-3">
+  <form action="{{ route('fridge.store') }}" method="post" class="form--stacked fridge-form mb-2" novalidate>
     @csrf
-    <input class="input" type="text" name="name" placeholder="Например: Молоко" value="{{ old('name') }}" required>
-    <input class="input" type="number" name="quantity" min="1" step="1" placeholder="Кол-во" value="{{ old('quantity', 1) }}">
-    <input class="input" type="number" name="weight_grams" min="1" step="1" placeholder="Граммы (опц.)" value="{{ old('weight_grams') }}">
-    <input class="input" type="text" name="comment" placeholder="Комментарий (опц.)" value="{{ old('comment') }}" style="width: 260px;">
-    <button class="btn" type="submit">Добавить</button>
+
+    <div class="field">
+      <label class="label" for="name">Название</label>
+      <input id="name" class="input" type="text" name="name" placeholder="Например: Молоко" value="{{ old('name') }}" required>
+      @error('name') <p class="input-error">{{ $message }}</p> @enderror
+    </div>
+
+    <div class="field">
+      <label class="label" for="quantity">Кол-во</label>
+      <input id="quantity" class="input" type="number" name="quantity" min="1" step="1" value="{{ old('quantity', 1) }}">
+      @error('quantity') <p class="input-error">{{ $message }}</p> @enderror
+    </div>
+
+    <div class="field">
+      <label class="label" for="weight_grams">Граммы (опц.)</label>
+      <input id="weight_grams" class="input" type="number" name="weight_grams" min="1" step="1" value="{{ old('weight_grams') }}">
+      @error('weight_grams') <p class="input-error">{{ $message }}</p> @enderror
+    </div>
+
+    <div class="field">
+      <label class="label" for="comment">Комментарий (опц.)</label>
+      <input id="comment" class="input" type="text" name="comment" value="{{ old('comment') }}">
+      @error('comment') <p class="input-error">{{ $message }}</p> @enderror
+    </div>
+
+    <button class="btn btn-primary" type="submit">Добавить</button>
+
   </form>
+</section>
 
-  @error('name')         <div class="errors mt-1">{{ $message }}</div> @enderror
-  @error('quantity')     <div class="errors mt-1">{{ $message }}</div> @enderror
-  @error('weight_grams') <div class="errors mt-1">{{ $message }}</div> @enderror
-  @error('comment')      <div class="errors mt-1">{{ $message }}</div> @enderror
+{{-- Список продуктов --}}
+<section class="card mt-2">
+  <div class="card-header">
+    <h2 class="card-title">Продукты</h2>
+  </div>
 
-  {{-- Список продуктов --}}
-  <div class="fridge-list">
+  <ul class="fridge-list" role="list">
     @forelse ($items as $item)
-      <div class="fridge-item">
-        <div>
+    <li class="fridge-item">
+      <div class="fridge-item__content">
+        <div class="fridge-item__title">
           <strong>{{ $item->name }}</strong>
-          <div class="fridge-item__meta">
-            × {{ $item->quantity }}
-            @if($item->weight_grams) • {{ $item->weight_grams }} г @endif
-            @if($item->comment) • {{ $item->comment }} @endif
-          </div>
         </div>
-
-        <div class="fridge-actions">
-          <a class="btn" href="{{ route('fridge.edit', $item) }}">Редактировать</a>
-          <form action="{{ route('fridge.destroy', $item) }}" method="post" onsubmit="return confirm('Удалить {{ $item->name }}?')">
-            @csrf
-            @method('DELETE')
-            <button class="btn btn-danger" type="submit">Удалить</button>
-          </form>
+        <div class="fridge-item__meta">
+          <span>× {{ $item->quantity }}</span>
+          @if($item->weight_grams) <span>• {{ $item->weight_grams }} г</span> @endif
+          @if($item->comment) <span class="comment"> {{ $item->comment }} </span> @endif
         </div>
       </div>
+
+      <div class="fridge-actions" role="group" aria-label="Действия">
+        <a class="btn btn-secondary" href="{{ route('fridge.edit', $item) }}">Редактировать</a>
+
+        <form action="{{ route('fridge.destroy', $item) }}" method="post"
+          onsubmit="return confirm('Удалить {{ $item->name }}?')">
+          @csrf
+          @method('DELETE')
+          <button class="btn btn-danger" type="submit">Удалить</button>
+        </form>
+      </div>
+    </li>
     @empty
-      <p class="mt-3">Пока пусто. Добавь первый продукт ↑</p>
+    <li class="muted">Пока пусто. Добавь первый продукт ↑</li>
     @endforelse
-  </div>
+  </ul>
+</section>
 @endsection
