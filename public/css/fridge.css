@@ -35,7 +35,7 @@
 .fridge-item {
     display: flex;
     gap: 12px;
-    background-color: #ffd1cf;
+    background-color: #e9ffef;
     align-items: center;
     border-radius: 12px;
     padding: 12px 14px;
@@ -49,6 +49,7 @@
 }
 
 .fridge-item__title {
+    text-align: center;
     font-weight: 700;
     letter-spacing: .2px
 }
