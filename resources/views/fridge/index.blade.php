@@ -52,7 +52,11 @@
   </button>
 </div>
 
-<dialog id="scan-dialog">
+
+
+
+  </form>
+  <dialog id="scan-dialog">
   <div class="scan-head">
     <h3>Сканирование</h3>
     <button class="btn btn-secondary" id="scan-close" type="button" aria-label="Закрыть">✕</button>
@@ -66,9 +70,6 @@
     <button class="btn" id="scan-stop" type="button">Стоп</button>
   </div>
 </dialog>
-
-
-  </form>
 </section>
 
 {{-- Список продуктов --}}

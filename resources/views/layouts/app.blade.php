@@ -9,7 +9,6 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <link rel="stylesheet" href="{{ asset('css/app.css') }}">
   @stack('styles')
-  @stack('scripts')
 </head>
 
 <body>
@@ -32,6 +31,8 @@
 
     @yield('content')
   </main>
+
+  @stack('scripts')
 </body>
 
 </html>
