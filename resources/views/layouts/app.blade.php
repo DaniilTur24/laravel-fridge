@@ -14,8 +14,7 @@
   <header class="site-header">
     <nav class="nav" aria-label="Основная навигация">
       <div class="nav-inner">
-        <a class="brand" href="{{ url('/') }}">{{ config('app.name', 'App') }}</a>
-        <a href="{{ route('tasks.index') }}">Задачи</a>
+        <a href="{{ route('tasks.index') }}">What to buy</a>
         <a href="{{ route('fridge.index') }}">Холодильник</a>
         <span class="right"></span>
       </div>

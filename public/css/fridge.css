@@ -59,7 +59,7 @@
     gap: 8px;
     margin-top: 6px;
     color: #374151;
-    justify-content: space-around;
+    flex-direction: column;
 }
 
 .fridge-actions {
@@ -70,6 +70,7 @@
 
 .comment {
     display: flex;
+    width: fit-content;
     color: #374151;
     background: #f8fafc;
     align-items: center;

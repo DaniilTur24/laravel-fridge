@@ -1,13 +1,31 @@
-<!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8">
-  <title>Hello</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-</head>
-<body style="font-family: system-ui; padding: 2rem;">
-  <h1>Привет, {{ $name }} 👋</h1>
-  <p>Это наш первый экран на Laravel. Попробуй менять переменную в контроллере.</p>
-  <p><a href="/">На главную</a></p>
-</body>
-</html>
+@extends('layouts.app')
+
+@section('title', 'Задачи')
+
+@push('styles')
+  {{-- если хочешь свои стили для tasks --}}
+  <link rel="stylesheet" href="{{ asset('css/tasks.css') }}">
+@endpush
+
+@section('content')
+  <section class="card">
+    <div class="card-header">
+      <h1 class="card-title">Список задач 📋</h1>
+      <p class="card-sub">Это пример страницы задач, использующей общий layout.</p>
+    </div>
+
+    <ul class="space-y">
+      @foreach ($tasks as $task)
+        <li class="card" style="padding: 1rem;">
+          <strong>{{ $task->title }}</strong><br>
+          <span class="muted text-sm">{{ $task->description }}</span>
+        </li>
+      @endforeach
+    </ul>
+
+    <p class="mt-3">
+      <a class="btn btn-primary" href="{{ url('/') }}">← На главную</a>
+    </p>
+  </section>
+@endsection
+
