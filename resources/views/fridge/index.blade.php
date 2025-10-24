@@ -70,15 +70,33 @@
       </div>
 
       <div class="fridge-actions" role="group" aria-label="Действия">
+        {{-- Отправить в What to buy --}}
+        <form action="{{ route('fridge.toTask', $item) }}" method="post" style="display:inline">
+          @csrf
+          <button class="btn btn-secondary" type="submit" title="Добавить в список покупок">
+            В список покупок
+          </button>
+        </form>
+
+        {{-- Вариант: Перенести и удалить из холодильника (одним кликом) --}}
+        <form action="{{ route('fridge.toTask', $item) }}" method="post" style="display:inline">
+          @csrf
+          <input type="hidden" name="remove" value="1">
+          <button class="btn btn-primary" type="submit" title="Перенести и удалить из холодильника">
+            Перенести 🛒
+          </button>
+        </form>
+
         <a class="btn btn-secondary" href="{{ route('fridge.edit', $item) }}">Редактировать</a>
 
         <form action="{{ route('fridge.destroy', $item) }}" method="post"
-          onsubmit="return confirm('Удалить {{ $item->name }}?')">
+          onsubmit="return confirm('Удалить {{ $item->name }}?')" style="display:inline">
           @csrf
           @method('DELETE')
           <button class="btn btn-danger" type="submit">Удалить</button>
         </form>
       </div>
+
     </li>
     @empty
     <li class="muted">Пока пусто. Добавь первый продукт ↑</li>

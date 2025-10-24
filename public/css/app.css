@@ -200,8 +200,7 @@ img {
 
 /* Forms */
 .form-row {
-        display: flex
-;
+    display: flex;
     flex-wrap: wrap;
     gap: 10px;
     align-items: flex-start;
@@ -260,6 +259,7 @@ img {
 .btn {
     display: inline-flex;
     align-items: center;
+    font-size: 11px;
     gap: 8px;
     border-radius: 12px;
     border: 1px solid transparent;

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\FridgeItem;
 use Illuminate\Http\Request;
+use App\Models\Task;
 
 class FridgeController extends Controller
 {
@@ -62,4 +63,26 @@ class FridgeController extends Controller
 
         return redirect()->route('fridge.index')->with('status', 'Продукт обновлён');
     }
+
+    public function toTask(FridgeItem $item, Request $request)
+{
+    // Собираем “человекочитаемое” название с количеством/весом/комментом
+    $parts = [$item->name];
+
+    $title = implode(' • ', $parts);
+
+    // Не дублируем одинаковые задачи (если уже есть — просто не создаём вторую)
+    Task::firstOrCreate(
+        ['title' => $title],
+        ['is_done' => false]
+    );
+
+    // Опционально: “перенести” — удалить из холодильника, если попросили
+    if ($request->boolean('remove')) {
+        $item->delete();
+        return back()->with('status', 'Перенесено в «What to buy» и удалено из холодильника.');
+    }
+
+    return back()->with('status', 'Добавлено в «What to buy».');
+}
 }

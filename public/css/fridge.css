@@ -64,8 +64,10 @@
 
 .fridge-actions {
     display: flex;
+    gap: 15px;
     width: 100%;
     justify-content: space-between;
+    flex-wrap: wrap;
 }
 
 .comment {
@@ -115,4 +117,3 @@
 .form--stacked .form-actions {
     margin-top: 6px;
 }
-

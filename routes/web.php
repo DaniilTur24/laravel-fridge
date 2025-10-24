@@ -24,5 +24,7 @@ Route::delete('/fridge/{item}', [FridgeController::class, 'destroy'])->name('fri
 Route::get('/fridge/{item}/edit', [FridgeController::class, 'edit'])->name('fridge.edit');
 Route::put('/fridge/{item}',       [FridgeController::class, 'update'])->name('fridge.update');
 
+Route::post('/fridge/{item}/to-task', [FridgeController::class, 'toTask'])
+    ->name('fridge.toTask');
 
 
