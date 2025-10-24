@@ -44,32 +44,35 @@
       @error('comment') <p class="input-error">{{ $message }}</p> @enderror
     </div>
 
-    <button class="btn btn-primary" type="submit">Добавить</button>
+    <div class="scan-add">
+      <button class="btn btn-primary" type="submit">Добавить</button>
 
-    <div class="fridge-tools">
-  <button class="btn btn-secondary" type="button" id="scan-open">
-    Сканировать штрих-код
-  </button>
-</div>
+      <div class="fridge-tools">
+        <button class="btn btn-secondary" type="button" id="scan-open">
+          Barcode scan
+        </button>
+      </div>
+    </div>
+
 
 
 
 
   </form>
   <dialog id="scan-dialog">
-  <div class="scan-head">
-    <h3>Сканирование</h3>
-    <button class="btn btn-secondary" id="scan-close" type="button" aria-label="Закрыть">✕</button>
-  </div>
-  <div class="scan-body">
-    <div id="scan-container" class="scan-container" aria-label="Просмотр камеры"></div>
-    <p class="muted" id="scan-hint">Наведите камеру на EAN-13/EAN-8</p>
-    <p class="scan-status" id="scan-status" aria-live="polite"></p>
-  </div>
-  <div class="scan-actions">
-    <button class="btn" id="scan-stop" type="button">Стоп</button>
-  </div>
-</dialog>
+    <div class="scan-head">
+      <h3>Сканирование</h3>
+      <button class="btn btn-secondary" id="scan-close" type="button" aria-label="Закрыть">✕</button>
+    </div>
+    <div class="scan-body">
+      <div id="scan-container" class="scan-container" aria-label="Просмотр камеры"></div>
+      <p class="muted" id="scan-hint">Наведите камеру на EAN-13/EAN-8</p>
+      <p class="scan-status" id="scan-status" aria-live="polite"></p>
+    </div>
+    <div class="scan-actions">
+      <button class="btn" id="scan-stop" type="button">Стоп</button>
+    </div>
+  </dialog>
 </section>
 
 {{-- Список продуктов --}}
@@ -138,7 +141,9 @@
   const statusEl = document.getElementById('scan-status');
   const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
 
-  let running = false, lastCode = null, sameReads = 0;
+  let running = false,
+    lastCode = null,
+    sameReads = 0;
 
   async function startScanner() {
     statusEl.textContent = 'Инициализация камеры…';
@@ -147,14 +152,22 @@
       inputStream: {
         name: "Live",
         type: "LiveStream",
-        target: container,                 // <-- ВАЖНО: не video, а контейнер
+        target: container, // <-- ВАЖНО: не video, а контейнер
         constraints: {
           facingMode: "environment",
-          width:  { min: 640, ideal: 1280 },
-          height: { min: 480, ideal: 720 }
+          width: {
+            min: 640,
+            ideal: 1280
+          },
+          height: {
+            min: 480,
+            ideal: 720
+          }
         }
       },
-      decoder: { readers: ["ean_reader","ean_8_reader","upc_reader"] },
+      decoder: {
+        readers: ["ean_reader", "ean_8_reader", "upc_reader"]
+      },
       locate: true,
       numOfWorkers: 0, // iOS/Safari стабильнее
       frequency: 5
@@ -164,18 +177,30 @@
     Quagga.onDetected(onDetected);
 
     // (необязательно) рамки для дебага
-    Quagga.onProcessed(function(result){
+    Quagga.onProcessed(function(result) {
       const ctx = Quagga.canvas?.ctx?.overlay;
       const canvas = Quagga.canvas?.dom?.overlay;
       if (!ctx || !canvas) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (result?.boxes) {
         result.boxes.filter(b => b !== result.box).forEach(b => {
-          Quagga.ImageDebug.drawPath(b, {x:0,y:1}, ctx, {color:"green", lineWidth:2});
+          Quagga.ImageDebug.drawPath(b, {
+            x: 0,
+            y: 1
+          }, ctx, {
+            color: "green",
+            lineWidth: 2
+          });
         });
       }
       if (result?.box) {
-        Quagga.ImageDebug.drawPath(result.box, {x:0,y:1}, ctx, {color:"blue", lineWidth:2});
+        Quagga.ImageDebug.drawPath(result.box, {
+          x: 0,
+          y: 1
+        }, ctx, {
+          color: "blue",
+          lineWidth: 2
+        });
       }
     });
 
@@ -196,7 +221,11 @@
     const code = res?.codeResult?.code;
     if (!code) return;
 
-    if (code === lastCode) sameReads++; else { lastCode = code; sameReads = 1; }
+    if (code === lastCode) sameReads++;
+    else {
+      lastCode = code;
+      sameReads = 1;
+    }
     if (sameReads < 2) return; // двойное подтверждение
 
     statusEl.textContent = `Найден код: ${code}`;
@@ -210,8 +239,13 @@
     try {
       const r = await fetch("{{ route('fridge.scan') }}", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf },
-        body: JSON.stringify({ ean: code })
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-TOKEN": csrf
+        },
+        body: JSON.stringify({
+          ean: code
+        })
       });
       const json = await r.json();
       if (!json.ok) throw new Error(json.error || 'scan_failed');
@@ -221,22 +255,36 @@
     } catch (e) {
       console.error(e);
       statusEl.textContent = 'Ошибка при добавлении. Попробуйте ещё раз.';
-      setTimeout(() => { lastCode=null; sameReads=0; startScanner(); }, 1200);
+      setTimeout(() => {
+        lastCode = null;
+        sameReads = 0;
+        startScanner();
+      }, 1200);
     }
   }
 
   // UI
   openBtn?.addEventListener('click', async () => {
     dlg.showModal();
-    lastCode = null; sameReads = 0;
+    lastCode = null;
+    sameReads = 0;
     await startScanner();
   });
-  closeBtn?.addEventListener('click', () => { stopScanner(); dlg.close(); });
-  stopBtn?.addEventListener('click', () => { stopScanner(); statusEl.textContent='Остановлено.'; });
+  closeBtn?.addEventListener('click', () => {
+    stopScanner();
+    dlg.close();
+  });
+  stopBtn?.addEventListener('click', () => {
+    stopScanner();
+    statusEl.textContent = 'Остановлено.';
+  });
   dlg?.addEventListener('click', (e) => {
     const rect = dlg.getBoundingClientRect();
-    const inside = e.clientX>=rect.left && e.clientX<=rect.right && e.clientY>=rect.top && e.clientY<=rect.bottom;
-    if (!inside) { stopScanner(); dlg.close(); }
+    const inside = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+    if (!inside) {
+      stopScanner();
+      dlg.close();
+    }
   });
 </script>
 @endpush
