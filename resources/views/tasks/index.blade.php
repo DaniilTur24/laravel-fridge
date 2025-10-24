@@ -10,7 +10,7 @@
 @section('content')
   <section class="card">
     <div class="card-header">
-      <h1 class="card-title">Che nado kupit ✅</h1>
+      <h1 class="card-title">Чего бы прикупить? ✅</h1>
     </div>
 
     {{-- флеш-сообщение --}}

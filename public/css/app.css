@@ -223,6 +223,7 @@ img {
 
 .input {
     appearance: none;
+    width: 55%;
     border: 1px solid var(--line);
     background: #fff;
     color: var(--text);
@@ -259,6 +260,7 @@ img {
     display: inline-flex;
     align-items: center;
     font-size: 11px;
+    width: 125px;
     gap: 8px;
     border-radius: 12px;
     border: 1px solid transparent;
@@ -286,8 +288,7 @@ img {
 }
 
 .btn-primary {
-    background: var(--brand);
-    border-color: var(--brand);
+    background: #61cd8f;
     color: #fff;
 }
 
@@ -307,8 +308,8 @@ img {
 }
 
 .btn-danger {
-    background: #fff0f0;
-    border-color: #f8d2d2;
+    background: #ffffff;
+    border-color: #ff0000;
     color: var(--danger);
 }
 
